@@ -1,6 +1,7 @@
-#install.packages("stats")
+install.packages("factoextra")
 library("ISwR")
 library("stats")
+library("factoextra")
 library("tidyverse")
 library("readr")
 library("dplyr")      #pacote utilizado para o 'select()'
@@ -51,6 +52,20 @@ ggplot(data = shots) +
 
 #------------------------------------------------------------------------------------------------
 #TÓPICO 4 - MEDIDAS DE LOCALIDADE
+#funções das medidas de localidade
+moda <- function(atributo){
+  subset (table(atributo), table(atributo) == max (table (atributo)))
+}
+
+mediana <- function(atributo){
+  median(atributo)
+}
+
+media <- function(atributo){
+  mean(atributo)
+}
+
+
 moda(shots$action_type)
 moda(shots$combined_shot_type)
 moda(shots$game_event_id)
@@ -104,24 +119,24 @@ media(shots$seconds_remaining)
 mediana(shots$seconds_remaining)
 boxplot(shots$seconds_remaining, main = "Segundos faltantes (atributo 'seconds_remaining')")
 
-#funções das medidas de localidade
-moda <- function(atributo){
-  subset (table(atributo), table(atributo) == max (table (atributo)))
-}
-
-mediana <- function(atributo){
-  median(atributo)
-}
-
-media <- function(atributo){
-  mean(atributo)
-}
 
 
 
 
 #------------------------------------------------------------------------------------------------
 #TÓPICO 5 - MEDIDAS DE ESPALHAMENTO
+#funcoes para as medidas
+variancia <- function(atributo){
+  var(atributo)
+}
+desvio <- function(atributo){
+  sd(atributo)
+}
+
+amplitude <- function(atributo){
+  range(atributo)
+}
+
 variancia(shots$lat)
 desvio(shots$lat)
 amplitude(shots$lat)
@@ -151,24 +166,50 @@ desvio(shots$seconds_remaining)
 amplitude(shots$seconds_remaining)
 
 
-variancia <- function(atributo){
-  var(atributo)
-}
-desvio <- function(atributo){
-  sd(atributo)
-}
-
-amplitude <- function(atributo){
-  range(atributo)
-}
-
-
 
 
 #------------------------------------------------------------------------------------------------
 #TÓPICO 6 - MEDIDAS DE DISTRIBUIÇÃO
-#chamando a função passando um atributo
+#funcoes da curtose e obliquidade
+curtose <- function(atributo){
+  kurtosis(atributo)
+}
 
+obliq <- function(atributo){
+  skewness(atributo)
+}
+
+#funcao para plotar a distribuição das classes dos atributos com barras
+distrib <- function(atributo, eixoXName){
+  hist(atributo, main = eixoXName)
+}
+
+#função para plotar a curva normal
+normal <- function(atributo, eixoXName){
+  media <- mean(atributo)
+  desvio <- sd(atributo)
+  maxim <- max(atributo)
+  minim <- min(atributo)
+  ggplot(data = data.frame(x = c(minim, 
+                                 maxim)), aes(x)) +
+    stat_function(fun = dnorm, 
+                  args = list(mean = media, 
+                              sd = desvio)) +
+    labs(y = "f(x)", x = eixoXName) +
+    geom_vline(xintercept = media, color = "red") +
+    labs(x = eixoXName) +
+    geom_vline(xintercept = desvio, color = "blue")
+}
+
+#funcao para atributos qualitativos
+frequencia <- function(atributo, eixoXName){
+  x <- table(atributo)
+  barplot(x,
+          xlab = eixoXName,
+          ylab = "Frequência")
+}
+
+#chamando a função passando um atributo
 #atributos quantitativos
 curtose(shots$lat)
 obliq(shots$lat)
@@ -223,44 +264,6 @@ frequencia(shots$shot_id, "shot_id")
 frequencia(shots$period, "period")
 frequencia(shots$shot_zone_range, "shot_zone_range")
 frequencia(shots$game_date, "game_date")
-
-curtose <- function(atributo){
-  kurtosis(atributo)
-}
-
-obliq <- function(atributo){
-  skewness(atributo)
-}
-
-#funcao para plotar a distribuição das classes dos atributos com barras
-distrib <- function(atributo, eixoXName){
-  hist(atributo, main = eixoXName)
-}
-
-#função para plotar a curva normal
-normal <- function(atributo, eixoXName){
-  media <- mean(atributo)
-  desvio <- sd(atributo)
-  maxim <- max(atributo)
-  minim <- min(atributo)
-  ggplot(data = data.frame(x = c(minim, 
-                                 maxim)), aes(x)) +
-    stat_function(fun = dnorm, 
-                  args = list(mean = media, 
-                              sd = desvio)) +
-    labs(y = "f(x)", x = eixoXName) +
-    geom_vline(xintercept = media, color = "red") +
-    labs(x = eixoXName) +
-    geom_vline(xintercept = desvio, color = "blue")
-}
-
-#funcao para atributos qualitativos
-frequencia <- function(atributo, eixoXName){
-  x <- table(atributo)
-  barplot(x,
-          xlab = eixoXName,
-          ylab = "Frequência")
-}
 
 
 
@@ -996,7 +999,58 @@ for (i in seq_along(shotsConversao$opponent)) {
   }
 }
 
+#action_type - nominal -> nominal/numérico (necessária conversão para binário)
+table(shotsConversao$action_type)
+actionTypes <- c("Jump Shot", "Layup Shot", "Driving Layup Shot", "Turnaround Jump Shot",
+                 "Fadeaway Jump Shot", "Running Jump Shot", "Turnaround Fadeaway shot", 
+                 "Pullup Jump shot", "Reverse Layup Shot", "Jump Bank Shot", "Slam Dunk Shot",
+                 "Dunk Shot", "Driving Dunk Shot", "Step Back Jump shot", "Tip Shot", "Floating Jump shot",
+                 "Reverse Dunk Shot", "Finger Roll Layup Shot", "Driving Reverse Layup Shot", 
+                 "Driving Finger Roll Shot", "Alley Oop Layup shot", "Alley Oop Dunk Shot", "Running Layup Shot",
+                 "Reverse Slam Dunk Shot", "Pullup Bank shot", "Jump Hook Shot", "Hook Shot", "Turnaround Bank shot",
+                 "Running Hook Shot", "Fadeaway Bank shot", "Driving Jump shot", "Driving Finger Roll Layup Shot",
+                 "Running Reverse Layup Shot", "Running Finger Roll Layup Shot", "Running Dunk Shot", "Running Bank shot",
+                 "Follow Up Dunk Shot", "Finger Roll Shot", "Driving Slam Dunk Shot", "Driving Hook Shot",
+                 "Driving Floating Jump Shot", "Cutting Layup Shot", "Driving Bank shot", "Hook Bank Shot",
+                 "Putback Dunk Shot", "Putback Layup Shot", "Putback Slam Dunk Shot", "Running Finger Roll Shot",
+                 "Running Pull-Up Jump Shot", "Tip Layup Shot", "Turnaround Finger Roll Shot", "Turnaround Hook Shot")
+
+for (i in seq_along(testeConversao$action_type)) {
+  for (j in seq_along(actionTypes)) {
+    if (testeConversao$action_type[i] == actionTypes[j]){
+      testeConversao$action_type[i] <- j
+    }
+  }
+}
+class(testeConversao$action_type)
+
+for (i in seq_along(shotsConversao$action_type)) {
+  for (j in seq_along(actionTypes)) {
+    if (shotsConversao$action_type[i] == actionTypes[j]){
+      shotsConversao$action_type[i] <- j
+    }
+  }
+}
+
+class(shotsConversao$action_type)
+
 #13.b
+#minutes_remaining
+#funcao para reescala
+#seconds_remaining, minutes_remaining, loc_y, loc_x, shot_distance, lon, lat
+
+reescala <- function(maximo, minimo, dmax, dmin, atributo){
+  return(dmin + ((dmax - dmin)/(maximo - minimo)) * (atributo - minimo))
+}
+
+#funcao de padronização
+padronizacao <- function(atributo){
+  media <- mean(atributo)
+  desvioP <- sd(atributo)
+  
+  return((atributo - media)/desvioP)
+}
+
 #minutes_remaining
 testeConversao$minutes_remaining <- reescala(max(testeConversao$minutes_remaining), 
                                              min(testeConversao$minutes_remaining),
@@ -1083,20 +1137,6 @@ shotsConversao$loc_y <- reescala(max(shotsConversao$loc_y),
 testeDimensao <- testeConversao
 shotsDimensao <- shotsConversao
 
-#funcao para reescala
-#seconds_remaining, minutes_remaining, loc_y, loc_x, shot_distance, lon, lat
-
-reescala <- function(maximo, minimo, dmax, dmin, atributo){
-  return(dmin + ((dmax - dmin)/(maximo - minimo)) * (atributo - minimo))
-}
-
-#funcao de padronização
-padronizacao <- function(atributo){
-  media <- mean(atributo)
-  desvioP <- sd(atributo)
-  
-  return((atributo - media)/desvioP)
-}
 
 
 
@@ -1104,13 +1144,14 @@ padronizacao <- function(atributo){
 #TÓPICO 14 - REDIMENSIONALIDADE
 
 
-dimensionarTeste <- testeDimensao[,c(3:8, 10:12, 16)]
-sapply(dimensionarTeste, sd)
+#teste
+dados_pca <- testeDimensao[,c(3:8, 10:12, 16)]
+sapply(dados_pca, sd)
 
-dimensionarTeste_cov <- prcomp(dimensionarTeste)
-summary(dimensionarTeste_cov)
+pca_cov <- prcomp(dados_pca)
+summary(pca_cov)
 
-pca_corr <- prcomp(dimensionarTeste, center = TRUE, scale = TRUE)
+pca_corr <- prcomp(dados_pca, center = TRUE, scale = TRUE, rank. = 2)
 summary(pca_corr)
 
 fviz_eig(pca_corr)
@@ -1124,3 +1165,58 @@ fviz_pca_ind(pca_corr,
              repel = TRUE, # Texto não sobreposto
              legend.title = "Representação"
 )
+
+fviz_pca_var(pca_corr,
+             col.var = "contrib", # Cor por contribuições para o PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE,     
+             legend.title = "Contribuição"
+)
+
+testeDimensao[,c(3:8, 10:12, 16)] <- NULL
+testeDimensao <- testeDimensao %>% 
+  mutate(testeDimensao, summary(pca_corr)$x[,1])
+testeDimensao <- testeDimensao %>% 
+  mutate(testeDimensao, summary(pca_corr)$x[,2])
+
+
+#treinamento
+dados_pca <- shotsDimensao[,c(3:8, 10:12, 16)]
+sapply(dados_pca, sd)
+
+pca_cov <- prcomp(dados_pca)
+summary(pca_cov)
+
+pca_corr <- prcomp(dados_pca, center = TRUE, scale = TRUE, rank. = 2)
+summary(pca_corr)
+
+fviz_eig(pca_corr)
+
+summary(pca_corr)$rotation
+summary(pca_corr)$x[,1] #criar duas colunas
+
+fviz_pca_ind(pca_corr,
+             col.ind = "cos2", #Cor pela qualidade de representação
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE, # Texto não sobreposto
+             legend.title = "Representação"
+)
+
+fviz_pca_var(pca_corr,
+             col.var = "contrib", # Cor por contribuições para o PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE,     
+             legend.title = "Contribuição"
+)
+
+shotsDimensao[,c(3:8, 10:12, 16)] <- NULL
+shotsDimensao <- shotsDimensao %>% 
+  mutate(shotsDimensao, summary(pca_corr)$x[,1])
+shotsDimensao <- shotsDimensao %>% 
+  mutate(shotsDimensao, summary(pca_corr)$x[,2])
+
+
+#------------------------------------------------------------------------------------------------
+#CONCLUSÃO
+dataTeste <- testeDimensao
+dataTreino <- shotsDimensao
