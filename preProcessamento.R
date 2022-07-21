@@ -1,3 +1,18 @@
+#NOME: JÁDYLA MARIA CESÁRIO FIRMINO
+#7º PERÍODO - ENGENHARIA DE COMPUTAÇÃO
+#ANÁLISE DE DADOS - KOBE BRYANT
+
+#Observações:
+#O teste e treinamento foram gerados aleatoriamente, por isso em todo início do projeto novos valores
+#irão surgir. Com isso, junto ao trabalho foi anexado o conjunto teste e treinamento após amostragem
+#sem passar pelos devidos tratamentos. Com os valores lá apresentados é possível gerar os resultados aqui
+#presentes passando pelas etapas, realizando a troca da amostragem aleatória para a leitura dos
+#dados das tabelas
+
+#os resultados finais representados por 'dataTeste' e 'dataTreino' também foram adicionados à pasta do trabalho,
+#como 'teste.csv' e 'treinamento.csv'
+
+
 install.packages("factoextra")
 library("ISwR")
 library("stats")
@@ -11,6 +26,10 @@ library("base")
 
 data <- read_csv("data.csv")
 
+
+
+
+#------------------------------------------------------------------------------------------------
 #TOPICO 1- COLOCANDO O ATRIBUTO ALVO NA ÚLTIMA COLUNA
 shotMade <- select(data, shot_made_flag)
 
@@ -118,7 +137,6 @@ moda(shots$seconds_remaining)
 media(shots$seconds_remaining)
 mediana(shots$seconds_remaining)
 boxplot(shots$seconds_remaining, main = "Segundos faltantes (atributo 'seconds_remaining')")
-
 
 
 
@@ -304,6 +322,8 @@ teste <- teste[sample(nrow(teste), 2430), replace = FALSE]
 
 table(shotsTraining$shot_made_flag)
 table(teste$shot_made_flag)
+#write.table(shotsTraining, file = "/Users/jadyl/Desktop/ENGENHARIA DE COMPUTAÇÃO/7º PERÌODO/IA/Trabalho 2/amostragemTreinamento.csv", sep=",")
+#write.table(teste, file = "/Users/jadyl/Desktop/ENGENHARIA DE COMPUTAÇÃO/7º PERÌODO/IA/Trabalho 2/amostragemTeste.csv", sep=",")
 
 
 
@@ -352,7 +372,7 @@ View(teste %>% count(action_type, combined_shot_type, lat, loc_x, loc_y,
 #12.a - ruidosos/outliers
 #lat, loc_y, shot_distance
 
-###TREINAMENTO
+###CONJUNTO TREINAMENTO
 
 
 #retirando de shot_distance
@@ -441,6 +461,7 @@ testeLimpeza <- testeRetiraShotLocx
 #12.d - faltantes
 shotsLimpeza <- na.omit(shotsLimpeza)
 testeLimpeza <- na.omit(testeLimpeza)
+
 
 
 
@@ -1216,7 +1237,11 @@ shotsDimensao <- shotsDimensao %>%
   mutate(shotsDimensao, summary(pca_corr)$x[,2])
 
 
+
+
 #------------------------------------------------------------------------------------------------
 #CONCLUSÃO
 dataTeste <- testeDimensao
 dataTreino <- shotsDimensao
+#write.table(testeConversao, file = "/Users/jadyl/Desktop/ENGENHARIA DE COMPUTAÇÃO/7º PERÌODO/IA/Trabalho 2/teste.csv", sep=",", row.names = FALSE)
+#write.table(shotsConversao, file = "/Users/jadyl/Desktop/ENGENHARIA DE COMPUTAÇÃO/7º PERÌODO/IA/Trabalho 2/treino.csv", sep=",", row.names = FALSE)
